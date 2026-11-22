@@ -8,6 +8,7 @@ import 'core/identity/identity.dart';
 import 'core/storage/paired_store.dart';
 import 'shared_ui/dev_transfer_screen.dart';
 import 'shared_ui/flutter_secret_store.dart';
+import 'shared_ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ Future<void> main() async {
   final android = Platform.isAndroid;
   runApp(
     PersonalSenderApp(
+      device: android ? AppDevice.phone : AppDevice.laptop,
       home: DevTransferScreen(
         identity: identity,
         pairedStore: PairedDeviceStore(const FlutterSecretStore()),
@@ -37,14 +39,22 @@ Future<void> main() async {
 }
 
 class PersonalSenderApp extends StatelessWidget {
-  const PersonalSenderApp({super.key, this.home});
+  const PersonalSenderApp({
+    super.key,
+    this.home,
+    this.device = AppDevice.phone,
+  });
 
   final Widget? home;
+  final AppDevice device;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PersonalSender',
+      theme: buildTheme(device, Brightness.light),
+      darkTheme: buildTheme(device, Brightness.dark),
+      themeMode: ThemeMode.system,
       home: home ?? const Scaffold(body: Center(child: Text('PersonalSender'))),
     );
   }

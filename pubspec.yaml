@@ -29,3 +29,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Bundled fonts (no runtime fetching). Both are SIL Open Font Licence; the
+  # licence texts sit next to the files in assets/fonts/.
+  fonts:
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo.ttf
+    - family: RobotoMono
+      fonts:
+        - asset: assets/fonts/RobotoMono.ttf

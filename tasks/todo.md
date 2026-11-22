@@ -198,18 +198,19 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 4 · Look and both directions (M4)
 
-### - [ ] Task 10: Theme, tokens and fonts
+### - [x] Task 10: Theme, tokens and fonts
 
 **Description:**
 - Turn DESIGN.md tokens into code: light and dark `ColorScheme` for each app, a `DeviceColors` `ThemeExtension`, and type styles including Archivo `wdth 125`.
 - Bundle Archivo + Roboto Mono. **Ask before downloading the font files.**
 
 **Acceptance criteria:**
-- [ ] A widget test pumps both apps' themes in light and dark without errors.
-- [ ] A test asserts the key contrast pairs from DESIGN.md are ≥ 4.5 : 1.
-- [ ] No runtime font fetching.
+- [x] A widget test pumps both apps' themes in light and dark without errors.
+- [x] A test asserts the key contrast pairs from DESIGN.md are ≥ 4.5 : 1.
+- [x] No runtime font fetching.
 
 **Verification:** `flutter test test/shared_ui/theme_test.dart`
+**Result:** 89 tests pass (16 in theme_test: all four themes pump without errors, every DESIGN.md text/background pair >= 4.5:1 incl. the built ColorSchemes, fonts bundled and no google_fonts anywhere). Fonts downloaded with the user approval from the google/fonts repo on GitHub: Archivo[wdth,wght].ttf 658,596 bytes and RobotoMono[wght].ttf 183,700 bytes (renamed Archivo.ttf, RobotoMono.ttf) plus both OFL licence texts, in assets/fonts/. Theme applied to the dev screens; the user checked both devices and says it looks good (dark mode not separately confirmed). Chosen by me, not in DESIGN.md: onError dark colour #2A0510 and the phone/laptop tertiary colours.
 **Dependencies:** 1
 **Files:** `lib/shared_ui/tokens.dart`, `lib/shared_ui/theme.dart`, `pubspec.yaml`, `assets/fonts/*`, `test/shared_ui/theme_test.dart`
 **Scope:** S
