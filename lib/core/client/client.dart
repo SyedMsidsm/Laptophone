@@ -36,7 +36,8 @@ class CoreClient {
       Uri(scheme: 'https', host: host, port: port, path: path);
 
   HttpClient _newHttpClient() {
-    final c = HttpClient(context: SecurityContext(withTrustedRoots: false));
+    final c = HttpClient(context: SecurityContext(withTrustedRoots: false))
+      ..connectionTimeout = const Duration(seconds: 4);
     c.badCertificateCallback = (cert, h, p) =>
         fingerprintOfDer(cert.der) == pinnedFingerprint;
     return c;
@@ -46,7 +47,8 @@ class CoreClient {
   /// at [host]:[port] presents. Never use this for a paired device.
   static Future<String> probeFingerprint(String host, int port) async {
     String? seen;
-    final c = HttpClient(context: SecurityContext(withTrustedRoots: false));
+    final c = HttpClient(context: SecurityContext(withTrustedRoots: false))
+      ..connectionTimeout = const Duration(seconds: 4);
     c.badCertificateCallback = (cert, h, p) {
       seen = fingerprintOfDer(cert.der);
       return false;

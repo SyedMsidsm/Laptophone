@@ -129,7 +129,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/pairing/pairing.dart`, `lib/core/storage/paired_store.dart`, `lib/core/server/server.dart`, `test/loopback/pairing_test.dart`
 **Scope:** M
 
-### - [ ] Task 7: Pairing screens
+### - [x] Task 7: Pairing screens
 
 **Description:**
 - Laptop **Pair phone** window: QR code (`qr_flutter`) with id, name, IPs, port, fingerprint and code, plus the "Can't scan?" address and code.
@@ -138,10 +138,11 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - Plain styling for now (the theme comes in Task 10).
 
 **Acceptance criteria:**
-- [ ] Scanning pairs in < 30 s, and both apps remember each other after restart (spec criterion 1).
-- [ ] The manual address + code path also pairs. A wrong code shows the error text from DESIGN.md.
+- [x] Scanning pairs in < 30 s, and both apps remember each other after restart (spec criterion 1).
+- [x] The manual address + code path also pairs. A wrong code shows the error text from DESIGN.md.
 
 **Verification:** Manual on both devices · `curl -k https://<laptop-ip>:47820/api/v1/transfers` from a third device or the laptop → `401`
+**Result:** 47 tests pass (QR payload round trip, scan and manual pairing loopback incl. wrong code, wrong fingerprint, unreachable first address). Per the user: QR scan pairs, pairing survives restart, manual address + code pairs, wrong code shows the DESIGN.md text. curl on the real laptop app: no token 401, wrong secret 401, /info 200. Camera permission is asked only on Scan code. Packages added, pinned: qr_flutter 4.1.0, mobile_scanner 7.5.0. Finding: the manual path has no fingerprint to check, so it trusts the certificate on first use, guarded only by the one-time code (an active attacker on the same Wi-Fi during that moment could pair; the QR path is not affected). The QR path pins the fingerprint from the code. Temporary dev button "Forget pairing" exists until Unpair in Task 17. Pair screens are plain; real styling comes with Task 10+.
 **Dependencies:** 6
 **Files:** `lib/desktop/pair_window.dart`, `lib/phone/pair_screen.dart`, `lib/phone/enter_code_screen.dart`, `android/app/src/main/AndroidManifest.xml`
 **Scope:** M
