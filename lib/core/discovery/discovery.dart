@@ -116,6 +116,7 @@ class DiscoveryService {
   /// How long the last discovery round took (for diagnostics).
   Duration lastRoundDuration = Duration.zero;
   bool _checking = false;
+  final List<(String, int)> _hints = [];
 
   /// Emits only when the state changes.
   Stream<DiscoveryState> get states => _controller.stream;
@@ -138,6 +139,14 @@ class DiscoveryService {
     await _controller.close();
   }
 
+  /// A verified hello said the paired device is at [host]:[hintPort]. Tried
+  /// first in the next round, which starts now unless already connected.
+  void hint(String host, int hintPort) {
+    if (!_running || _state.status == DiscoveryStatus.connected) return;
+    if (!_hints.contains((host, hintPort))) _hints.add((host, hintPort));
+    if (!_checking) unawaited(checkNow());
+  }
+
   /// Runs one discovery round now (also used when the network changes).
   Future<DiscoveryState> checkNow() async {
     if (_checking) return _state;
@@ -148,6 +157,11 @@ class DiscoveryService {
       lastRoundDuration = stopwatch.elapsed;
     } finally {
       _checking = false;
+    }
+    if (_running &&
+        _hints.isNotEmpty &&
+        _state.status != DiscoveryStatus.connected) {
+      return checkNow(); // A hello arrived during the round.
     }
     if (_running) {
       _timer?.cancel();
@@ -189,6 +203,15 @@ class DiscoveryService {
           peerPlatform: info.platform,
         ),
       );
+    }
+
+    // 0. Addresses that just announced themselves by UDP.
+    final hints = List.of(_hints);
+    _hints.clear();
+    for (final (host, hintPort) in hints) {
+      if (!tried.add(host)) continue;
+      final info = await prober(host, hintPort);
+      if (info != null) return connected(host, hintPort, info);
     }
 
     // 1. Last good address.

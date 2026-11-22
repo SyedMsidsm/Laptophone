@@ -31,7 +31,8 @@ bool isVirtualInterface(String name) {
       n.contains('vmware') ||
       n.contains('virtualbox') ||
       n.contains('rmnet') ||
-      n.startsWith('lo');
+      n == 'lo' ||
+      n == 'lo0';
 }
 
 /// Lists usable private IPv4 addresses using `dart:io` only.

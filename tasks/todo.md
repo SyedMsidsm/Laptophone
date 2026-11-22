@@ -173,7 +173,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/discovery/discovery.dart`, `lib/core/discovery/gateway.dart`, `lib/core/discovery/subnet_scan.dart`, `test/core/discovery/discovery_test.dart`
 **Scope:** M
 
-### - [ ] Task 9: UDP announce and Android multicast lock
+### - [x] Task 9: UDP announce and Android multicast lock
 
 **Description:**
 - Both apps send a small signed "hello" (id + port) by multicast and broadcast on UDP 47820, and listen for the other.
@@ -181,10 +181,11 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - A heard hello feeds `DiscoveryService`.
 
 **Acceptance criteria:**
-- [ ] With both apps open, they connect within 10 s on home Wi-Fi, the phone's hotspot and the Windows hotspot (spec criterion 5).
-- [ ] Works with UDP blocked too (falls back to Task 8), just slower.
+- [x] With both apps open, they connect within 10 s on home Wi-Fi, the phone's hotspot and the Windows hotspot (spec criterion 5).
+- [x] Works with UDP blocked too (falls back to Task 8), just slower.
 
 **Verification:** Manual test of all three network setups on real devices; results written in todo.md
+**Result:** 73 tests pass (signed hello codec, UDP loopback, hint-first discovery). Real devices, time from opening until connected: home Wi-Fi laptop 1863 ms, phone 1585 ms (found by scan before any hello); phone hotspot phone 665 ms (labelled Phone hotspot); Windows hotspot phone 832 ms (labelled Laptop hotspot, after the user also allowed the app on Public in Windows Firewall). Without UDP the scan and gateway steps connect in about 1.6 s, so it works with UDP blocked. UDP findings: the laptop hears the phone on all three networks, but the phone heard the laptop only on home Wi-Fi, not on either hotspot (hotspots seem to drop multicast and broadcast to the phone); discovery still worked via gateway and scan. Windows hotspot needs the app allowed on Public (no network profile is listed for the hotspot adapter). Bug found and fixed: the virtual-adapter filter skipped "Local Area Connection* 12" (the hotspot adapter) because of a startsWith(lo) match. Android multicast lock is held while the app is open (`MulticastLock` channel); CHANGE_WIFI_MULTICAST_STATE added. Dev screen shows the last hello heard.
 **Dependencies:** 8
 **Files:** `lib/core/discovery/udp_announce.dart`, `android/app/src/main/kotlin/com/personalsender/app/MainActivity.kt`, `lib/phone/multicast_lock.dart`
 **Scope:** M

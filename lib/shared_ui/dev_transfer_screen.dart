@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import '../core/client/client.dart';
 import '../core/discovery/discovery.dart';
 import '../core/discovery/prober.dart';
+import '../core/discovery/udp_announce.dart';
 import '../core/identity/identity.dart';
 import '../core/pairing/pairing.dart';
 import '../core/protocol/models.dart';
@@ -14,6 +15,7 @@ import '../core/server/server.dart';
 import '../core/storage/paired_store.dart';
 import '../core/transfer/receiver.dart';
 import '../desktop/pair_window.dart';
+import '../phone/multicast_lock.dart';
 import '../phone/pair_screen.dart';
 import 'platform_network_info.dart';
 
@@ -52,6 +54,12 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   String _pairedLine = 'Not paired';
   String _netLine = 'Network: checkingâ€¦';
   DiscoveryService? _discovery;
+  UdpAnnouncer? _udp;
+  final _openedAt = DateTime.now();
+  int? _connectedAfterMs;
+  bool _udpOn = true;
+  String _lastHello = 'none heard yet';
+  final _multicast = const MulticastLock();
   StreamSubscription<DiscoveryState>? _discSub;
   String _sendStatus = 'Pair first, then pick a file.';
   final List<String> _received = [];
@@ -75,6 +83,11 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
     _discovery = d;
     _discSub = d.states.listen((s) {
       if (!mounted) return;
+      if (s.status == DiscoveryStatus.connected) {
+        _connectedAfterMs ??= DateTime.now()
+            .difference(_openedAt)
+            .inMilliseconds;
+      }
       setState(() {
         _netLine = switch (s.status) {
           DiscoveryStatus.offline => 'Network: offline',
@@ -82,12 +95,44 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           DiscoveryStatus.connected =>
             'Network: ${_kindLabel(s.network)} · connected to '
                 '${s.peer!.name} (${s.address}) · '
-                '${d.lastRoundDuration.inMilliseconds} ms',
+                'round ${d.lastRoundDuration.inMilliseconds} ms, '
+                'first connected $_connectedAfterMs ms after opening',
         };
         if (s.status == DiscoveryStatus.connected) _address.text = s.address!;
       });
     });
     d.start();
+    _udp = UdpAnnouncer(
+      selfId: widget.identity.id,
+      servicePort: defaultPort,
+      store: widget.pairedStore,
+      network: PlatformNetworkInfo(),
+      onHello: (host, port) {
+        if (mounted) {
+          setState(
+            () => _lastHello = '$host at ${TimeOfDay.now().format(context)}',
+          );
+        }
+        _discovery?.hint(host, port);
+      },
+    );
+    _applyUdp();
+  }
+
+  Future<void> _applyUdp() async {
+    final udp = _udp;
+    if (udp == null) return;
+    if (_udpOn) {
+      await _multicast.acquire();
+      try {
+        await udp.start();
+      } on Object catch (e) {
+        if (mounted) setState(() => _netLine = 'UDP could not start: $e');
+      }
+    } else {
+      await udp.stop();
+      await _multicast.release();
+    }
   }
 
   String _kindLabel(NetworkKind k) => switch (k) {
@@ -159,6 +204,8 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   @override
   void dispose() {
     _discSub?.cancel();
+    _udp?.stop();
+    _multicast.release();
     _discovery?.dispose();
     _server?.stop();
     _address.dispose();
@@ -277,6 +324,16 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           const SizedBox(height: 8),
           Text(_pairedLine),
           Text(_netLine),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('UDP announce (dev test)'),
+            subtitle: Text('Last hello heard: $_lastHello'),
+            value: _udpOn,
+            onChanged: (v) {
+              setState(() => _udpOn = v);
+              _applyUdp();
+            },
+          ),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: _openPairing,

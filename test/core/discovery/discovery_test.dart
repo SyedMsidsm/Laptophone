@@ -261,6 +261,8 @@ void main() {
     test('virtual adapters are skipped', () {
       expect(isVirtualInterface('vEthernet (WSL (Hyper-V firewall))'), isTrue);
       expect(isVirtualInterface('rmnet_data7'), isTrue);
+      expect(isVirtualInterface('lo'), isTrue);
+      expect(isVirtualInterface('Local Area Connection* 12'), isFalse);
       expect(isVirtualInterface('wlan0'), isFalse);
       expect(isVirtualInterface('WiFi'), isFalse);
     });
