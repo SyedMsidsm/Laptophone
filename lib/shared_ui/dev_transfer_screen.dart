@@ -17,7 +17,9 @@ import '../core/transfer/receiver.dart';
 import '../desktop/pair_window.dart';
 import '../phone/multicast_lock.dart';
 import '../phone/pair_screen.dart';
+import 'link_indicator.dart';
 import 'platform_network_info.dart';
+import 'theme.dart';
 
 /// Dev screen, same on phone and laptop (replaced by the real screens in
 /// Task 7): it listens, can show a pairing code, can pair by typed address
@@ -59,6 +61,8 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   int? _connectedAfterMs;
   bool _udpOn = true;
   String _lastHello = 'none heard yet';
+  LinkState _link = LinkState.looking;
+  NetworkKind _kind = NetworkKind.unknown;
   final _multicast = const MulticastLock();
   StreamSubscription<DiscoveryState>? _discSub;
   String _sendStatus = 'Pair first, then pick a file.';
@@ -89,6 +93,12 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
             .inMilliseconds;
       }
       setState(() {
+        _kind = s.network;
+        _link = switch (s.status) {
+          DiscoveryStatus.offline => LinkState.offline,
+          DiscoveryStatus.looking => LinkState.looking,
+          DiscoveryStatus.connected => LinkState.connected,
+        };
         _netLine = switch (s.status) {
           DiscoveryStatus.offline => 'Network: offline',
           DiscoveryStatus.looking => 'Network: looking for the other device…',
@@ -323,6 +333,15 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           Text('Pairing', style: text.titleLarge),
           const SizedBox(height: 8),
           Text(_pairedLine),
+          LinkIndicator(
+            state: _link,
+            network: _kind,
+            peer: widget.platform == 'android'
+                ? AppDevice.laptop
+                : AppDevice.phone,
+            badgeSize: widget.platform == 'android' ? 64 : 44,
+          ),
+          const SizedBox(height: 8),
           Text(_netLine),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

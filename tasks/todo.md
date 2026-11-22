@@ -215,15 +215,16 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/shared_ui/tokens.dart`, `lib/shared_ui/theme.dart`, `pubspec.yaml`, `assets/fonts/*`, `test/shared_ui/theme_test.dart`
 **Scope:** S
 
-### - [ ] Task 11: Connection line widget
+### - [x] Task 11: Connection line widget
 
 **Description:** `LinkIndicator(state, network)`: two device badges and a half-orange, half-blue line, with solid, dashed and broken states and a network chip. The dashes drift only when animations are allowed. `Semantics` label = the status sentence.
 
 **Acceptance criteria:**
-- [ ] Widget tests: each state renders, the semantics label is right, and there's no animation when `disableAnimations` is true.
-- [ ] Golden images for the 3 states (light + dark).
+- [x] Widget tests: each state renders, the semantics label is right, and there's no animation when `disableAnimations` is true.
+- [x] Golden images for the 3 states (light + dark).
 
 **Verification:** `flutter test test/shared_ui/link_indicator_test.dart`
+**Result:** 106 tests pass (17 in link_indicator_test: status sentences, each state renders with the right semantics label, chip shown or hidden, dashes drift only while looking and not when animations are disabled, 6 golden images in test/shared_ui/goldens/ for 3 states x light and dark). Goldens use the Flutter test font, so text and icons show as boxes; they check layout and colour only. Checked on both real devices by the user: solid, dashed and broken states work. The widget is shown on the dev screens for now.
 **Dependencies:** 10
 **Files:** `lib/shared_ui/link_indicator.dart`, `test/shared_ui/link_indicator_test.dart`
 **Scope:** S
