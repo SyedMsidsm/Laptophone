@@ -229,7 +229,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/shared_ui/link_indicator.dart`, `test/shared_ui/link_indicator_test.dart`
 **Scope:** S
 
-### - [ ] Task 12: Phone Home screen
+### - [x] Task 12: Phone Home screen
 
 **Description:**
 - Home as drawn: orange band, connection card fed by `DiscoveryService`, and Stay ready row (switch disabled until Task 20).
@@ -238,11 +238,12 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - Send buttons are disabled with an explanation when offline.
 
 **Acceptance criteria:**
-- [ ] Sending photos and files from Home works, and items appear in Today with the phone-orange tile.
-- [ ] Offline state matches the design: disabled buttons, Try again.
-- [ ] Usable at 200 % font size without clipping.
+- [x] Sending photos and files from Home works, and items appear in Today with the phone-orange tile.
+- [x] Offline state matches the design: disabled buttons, Try again.
+- [x] Usable at 200 % font size without clipping.
 
 **Verification:** `flutter test test/core/history test/phone` · manual on the S24
+**Result:** 138 tests pass (history store 10, sender loopback 3, Home screen and activity row 19 incl. every state at 200 % text on a 360x780 screen with no overflow, formatBytes). On the S24 the user ran all five manual steps (send photos, send files, offline state with Try again, largest font) and reports it works; I checked the files in DesktopPersonalSender Inbox and 3 of 3 sampled files have the same SHA-256 as the phone copies. Added `shared_preferences` 2.5.6 (spec list, pinned). New pieces: HistoryStore (core), Sender (core), ActivityRow and format helpers (shared_ui), HomeScreen and PhoneHomeHost (phone). Not done on purpose: "See all" and Settings (Tasks 22 and 17), "Send copied text" (Task 18), Retry button (Task 21, ActivityRow already supports it), saving received files to Gallery/Downloads (Task 14; they sit in the app cache and show in Today as received). File picker copies each chosen file into the app cache first; cleanup comes with Task 15.
 **Dependencies:** 7, 9, 11
 **Files:** `lib/phone/home_screen.dart`, `lib/shared_ui/activity_row.dart`, `lib/core/history/history_store.dart`, `test/core/history/history_store_test.dart`
 **Scope:** M

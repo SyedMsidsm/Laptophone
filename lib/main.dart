@@ -4,10 +4,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'desktop/known_folders.dart';
+import 'core/history/history_store.dart';
 import 'core/identity/identity.dart';
 import 'core/storage/paired_store.dart';
+import 'phone/phone_home_host.dart';
 import 'shared_ui/dev_transfer_screen.dart';
 import 'shared_ui/flutter_secret_store.dart';
+import 'shared_ui/shared_prefs_store.dart';
 import 'shared_ui/theme.dart';
 
 Future<void> main() async {
@@ -18,15 +21,31 @@ Future<void> main() async {
     name: Platform.localHostname,
   );
   debugPrint('Identity ready in ${sw.elapsedMilliseconds} ms');
-  // Task 4 dev screen on both devices; replaced by the real apps later.
   final android = Platform.isAndroid;
+  final pairedStore = PairedDeviceStore(const FlutterSecretStore());
+  if (android) {
+    // The real phone Home screen (Task 12).
+    final history = HistoryStore(await SharedPrefsStore.open());
+    runApp(
+      PersonalSenderApp(
+        device: AppDevice.phone,
+        home: PhoneHomeHost(
+          identity: identity,
+          pairedStore: pairedStore,
+          history: history,
+        ),
+      ),
+    );
+    return;
+  }
+  // The laptop keeps the dev screen until Task 13.
   runApp(
     PersonalSenderApp(
-      device: android ? AppDevice.phone : AppDevice.laptop,
+      device: AppDevice.laptop,
       home: DevTransferScreen(
         identity: identity,
-        pairedStore: PairedDeviceStore(const FlutterSecretStore()),
-        platform: android ? 'android' : 'windows',
+        pairedStore: pairedStore,
+        platform: 'windows',
         // Phone: app cache for now (real Downloads/gallery saving is Task 14).
         resolveInbox: android
             ? () async => Directory('${Directory.systemTemp.path}/inbox')
