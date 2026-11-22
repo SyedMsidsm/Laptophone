@@ -88,7 +88,7 @@ Rules:
 | Switches | M3 `Switch` in phone orange; Windows-style toggle in laptop blue with "On/Off" label. The whole row toggles. |
 | Drop zone (laptop) | `desktop_drop` `DropTarget`. Idle: 3 px dashed blue. Drag-over: solid blue border, laptopSoft fill, orange phone badge with a blue count badge, "Drop to send 3 items". Still accepts drops when the phone is offline (outbox). |
 | Tray menu | `tray_manager`, in this order: two-colour status line · Open PersonalSender · Send files… (Ctrl+O) · Send clipboard to phone · — · Open received folder · Pair phone… · Settings · — · Quit PersonalSender |
-| Windows notifications | `local_notifier`: "4 photos from Galaxy S24 Ultra / Saved to Desktop › PersonalSender. / [Open folder]", "Link from … / github.com · Copied to clipboard. / [Open link]", "Text from … / Copied to clipboard." |
+| Windows notifications | `local_notifier`: "4 photos from Galaxy S24 Ultra / Saved to Desktop › PersonalSender Inbox. / [Open folder]", "Link from … / github.com · Copied to clipboard. / [Open link]", "Text from … / Copied to clipboard." |
 | Android notifications | Ongoing "Sending…" with orange progress + Cancel; "3 photos from Laptop / Saved to Gallery › PersonalSender. / Show in Gallery"; "Link from Laptop / Open link"; Stay ready ongoing with Turn off |
 | Pairing | Laptop: `qr_flutter` 224 px with quiet zone; steps numbered in the colour of the device that does each step. Phone: `mobile_scanner` with orange corner brackets on a dark viewfinder, plus **Enter code instead**. |
 

@@ -66,7 +66,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/server/server.dart`, `lib/core/client/client.dart`, `lib/core/transfer/receiver.dart`, `test/loopback/transfer_test.dart`
 **Scope:** M
 
-### - [ ] Task 4: Bare-bones apps to send a photo by typed IP
+### - [x] Task 4: Bare-bones apps to send a photo by typed IP
 
 **Description:**
 - Laptop: start the server, save into `Desktop\PersonalSender Inbox\` (found via the Windows Desktop known folder) and show "Listening on <ip>:47820".
@@ -78,7 +78,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - [x] Written down: whether Android 17 asked for a local-network permission, and what the Windows Firewall prompt looked like.
 
 **Verification:** Manual, on both devices; compare SHA-256 with `Get-FileHash` on the laptop.
-**Result:** Phone to laptop on home Wi-Fi: 284994.jpg (261206 bytes) arrived with the same SHA-256 as the phone copy. Findings: (1) Android 17 needs `ACCESS_LOCAL_NETWORK`; without it connections fail ("Software caused connection abort" sending, timeouts receiving). It never prompted because the app did not request it. Now declared in the manifest and granted via `adb pm grant`; a runtime request is still needed (later task). (2) Windows Firewall: no prompt seen; the auto-created `personal_sender.exe` rules covered Public only, so the Private Wi-Fi blocked inbound until the user ticked Private. Rules are per exe path. (3) Scope widened at the user request: both apps now listen and send (`lib/shared_ui/dev_transfer_screen.dart`). Phone inbox is the app cache for now. (4) The laptop inbox `DesktopPersonalSender` is the same folder as this repo; needs a decision. Still to test: laptop to phone, and hotspot.
+**Result:** Phone to laptop on home Wi-Fi: 284994.jpg (261206 bytes) arrived with the same SHA-256 as the phone copy. Findings: (1) Android 17 needs `ACCESS_LOCAL_NETWORK`; without it connections fail ("Software caused connection abort" sending, timeouts receiving). It never prompted because the app did not request it. Now declared in the manifest and granted via `adb pm grant`; a runtime request is still needed (later task). (2) Windows Firewall: no prompt seen; the auto-created `personal_sender.exe` rules covered Public only, so the Private Wi-Fi blocked inbound until the user ticked Private. Rules are per exe path. (3) Scope widened at the user request: both apps now listen and send (`lib/shared_ui/dev_transfer_screen.dart`). Phone inbox is the app cache for now. (4) The laptop inbox `DesktopPersonalSender` is the same folder as this repo; needs a decision. Also verified: laptop to phone on Wi-Fi (59959 bytes, size match) and phone hotspot (laptop on hotspot as Private; phone to laptop 284997.jpg 289572 bytes, SHA-256 matches). Phone only accepts incoming while its app is in the foreground (expected until Stay ready, Task 20). Hotspot network on the laptop must be Private too.
 **Dependencies:** 3
 **Files:** `lib/main.dart`, `lib/phone/dev_send_screen.dart`, `lib/desktop/dev_receive_screen.dart`, `android/app/src/main/AndroidManifest.xml`, `lib/desktop/known_folders.dart`
 **Scope:** M

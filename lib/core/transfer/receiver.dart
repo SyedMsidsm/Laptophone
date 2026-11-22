@@ -23,9 +23,12 @@ class ReceiveException implements Exception {
 /// the received byte count equals the announced size. Anything else deletes
 /// the `.part` file, so a partial file never has its final name.
 class Receiver {
-  Receiver(this.saveDir);
+  Receiver(this.saveDir, {this.onReceived});
 
   final Directory saveDir;
+
+  /// Called with the final path after each file is saved.
+  final void Function(String path)? onReceived;
   final Map<String, TransferOffer> _offers = {};
   final Map<String, Set<int>> _started = {};
   final _rand = Random.secure();
@@ -104,6 +107,7 @@ class Receiver {
       throw ReceiveException('Expected ${meta.size} bytes, got $count');
     }
     await partFile.rename(finalFile.path);
+    onReceived?.call(finalFile.path);
     return finalFile.path;
   }
 

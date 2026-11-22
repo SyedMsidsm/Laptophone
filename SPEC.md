@@ -64,7 +64,7 @@ The receiver writes uploads to `<name>.part` and renames the file only when the 
 
 | Received on | Photos and videos | Other files | Text |
 |---|---|---|---|
-| Laptop | `Desktop\PersonalSender\` (resolved via the Windows Desktop known-folder, so OneDrive-redirected desktops work; can be changed) | same | copied to clipboard + notification ("Open link" button for URLs) |
+| Laptop | `Desktop\PersonalSender Inbox\` (resolved via the Windows Desktop known-folder, so OneDrive-redirected desktops work; can be changed) | same | copied to clipboard + notification ("Open link" button for URLs) |
 | Phone | Gallery album **PersonalSender** | `Downloads/PersonalSender/` | copied to clipboard + notification + shown in history |
 
 ## Capability map
@@ -199,7 +199,7 @@ Target: **≥ 80 % line coverage on `lib/core`**. UI code has no coverage target
 ## Success criteria
 
 1. **Pairing:** scanning the laptop's QR code pairs the devices in under 30 s, and they stay paired after both apps restart.
-2. **Phone → laptop:** sharing 10 photos from the Gallery puts them in `Desktop\PersonalSender\` with the original names and the same SHA-256 as the originals, plus a Windows notification.
+2. **Phone → laptop:** sharing 10 photos from the Gallery puts them in `Desktop\PersonalSender Inbox\` with the original names and the same SHA-256 as the originals, plus a Windows notification.
 3. **Laptop → phone:** dragging 3 files (including a 1 GB video) onto the window puts the photos and video in the gallery album *PersonalSender* and the other file in `Downloads/PersonalSender/`, all byte-identical.
 4. **Speed and memory:** a 1 GB video moves at **≥ 10 MB/s** on 5 GHz Wi-Fi, and the phone app stays under **200 MB** of memory while sending.
 5. **Discovery:** on home Wi-Fi, the phone's hotspot and the Windows hotspot, the devices connect within **10 s** of opening the app, with no IP typing.
@@ -235,7 +235,7 @@ Target: **≥ 80 % line coverage on `lib/core`**. UI code has no coverage target
 
 ## Decisions (2026-11-22)
 
-1. **Laptop receive folder:** `Desktop\PersonalSender\`.
+1. **Laptop receive folder:** `Desktop\PersonalSender Inbox\`.
 2. **Stay ready on the phone:** off by default; turned on by hand when you want instant laptop → phone delivery.
 3. **Links received on the laptop:** notification with an **Open link** button; never opened automatically.
 4. **App name and package ID:** "PersonalSender" / `com.personalsender.app`.
