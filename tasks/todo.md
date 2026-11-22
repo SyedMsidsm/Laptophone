@@ -248,7 +248,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/phone/home_screen.dart`, `lib/shared_ui/activity_row.dart`, `lib/core/history/history_store.dart`, `test/core/history/history_store_test.dart`
 **Scope:** M
 
-### - [ ] Task 13: Laptop main window
+### - [x] Task 13: Laptop main window
 
 **Description:**
 - Main window as drawn: blue band, connection pill, and drop zone (`desktop_drop`) with the drag-over state and count badge.
@@ -256,11 +256,12 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - Keyboard focus order as in DESIGN.md.
 
 **Acceptance criteria:**
-- [ ] Dragging 3 files onto the window sends them to the phone, with progress in Activity.
-- [ ] Everything works keyboard-only.
-- [ ] Below 760 px wide, Activity stacks under the drop zone.
+- [x] Dragging 3 files onto the window sends them to the phone, with progress in Activity.
+- [x] Everything works keyboard-only.
+- [x] Below 760 px wide, Activity stacks under the drop zone.
 
 **Verification:** Manual on Windows · `flutter test test/desktop`
+**Result:** 162 tests pass (24 in test/desktop: states, drop-zone look, 760 px breakpoint, Ctrl+O, Tab order Pair phone then Open received folder then Choose files, 200 % text at 1000 and 700 px). On Windows the user dragged files onto the window, they reached the phone with progress in Activity, and reports it works; Tab, Ctrl+O, Open received folder and the narrow layout were also part of the manual checklist. Added `desktop_drop` 0.8.0 (spec list, pinned; 0.9.2 did not resolve). Deviations: the drag-over state shows "Drop to send" without a count, because the system does not report how many files are being dragged until they are dropped. Header has Pair phone and Open received folder only; Settings (Task 17) and Send clipboard (Task 18) come later. Until the outbox (Task 19) a drop while the phone is unreachable is recorded as "Not sent · Not reachable". The old dev screen is removed. Finding: when the phone app is in the background Android stops answering, so the laptop shows Looking or Not reachable; Task 20 (Stay ready) is the fix and is being done next.
 **Dependencies:** 7, 9, 11
 **Files:** `lib/desktop/main_window.dart`, `lib/desktop/drop_zone.dart`, `lib/desktop/shortcuts.dart`, `test/desktop/main_window_test.dart`
 **Scope:** M

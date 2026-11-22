@@ -1,14 +1,12 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'desktop/known_folders.dart';
+import 'desktop/laptop_host.dart';
 import 'core/history/history_store.dart';
 import 'core/identity/identity.dart';
 import 'core/storage/paired_store.dart';
 import 'phone/phone_home_host.dart';
-import 'shared_ui/dev_transfer_screen.dart';
 import 'shared_ui/flutter_secret_store.dart';
 import 'shared_ui/shared_prefs_store.dart';
 import 'shared_ui/theme.dart';
@@ -38,20 +36,15 @@ Future<void> main() async {
     );
     return;
   }
-  // The laptop keeps the dev screen until Task 13.
+  // The laptop main window (Task 13).
+  final history = HistoryStore(await SharedPrefsStore.open());
   runApp(
     PersonalSenderApp(
       device: AppDevice.laptop,
-      home: DevTransferScreen(
+      home: LaptopHost(
         identity: identity,
         pairedStore: pairedStore,
-        platform: 'windows',
-        // Phone: app cache for now (real Downloads/gallery saving is Task 14).
-        resolveInbox: android
-            ? () async => Directory('${Directory.systemTemp.path}/inbox')
-            : personalSenderInbox,
-        pickType: android ? FileType.image : FileType.any,
-        pickLabel: android ? 'Pick photo' : 'Pick file',
+        history: history,
       ),
     ),
   );

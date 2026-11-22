@@ -5,19 +5,9 @@ import '../core/discovery/discovery.dart' show NetworkKind;
 import '../core/history/history_store.dart';
 import '../shared_ui/activity_row.dart';
 import '../shared_ui/link_indicator.dart';
+import '../shared_ui/sending_progress.dart';
 import '../shared_ui/theme.dart';
 import '../shared_ui/tokens.dart';
-
-/// Progress of the batch being sent right now.
-class SendingProgress {
-  const SendingProgress({required this.label, required this.fraction});
-
-  /// For example "Sending 2 of 4 · 18.4 of 41.0 MB".
-  final String label;
-
-  /// 0 to 1.
-  final double fraction;
-}
 
 /// The phone's Home screen: orange band, connection card, Stay ready row,
 /// today's activity and the send buttons. It only draws what it is given.

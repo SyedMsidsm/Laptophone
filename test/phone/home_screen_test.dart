@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:personal_sender/core/discovery/discovery.dart' show NetworkKind;
 import 'package:personal_sender/core/history/history_store.dart';
 import 'package:personal_sender/phone/home_screen.dart';
+import 'package:personal_sender/shared_ui/sending_progress.dart';
 import 'package:personal_sender/shared_ui/activity_row.dart';
 import 'package:personal_sender/shared_ui/link_indicator.dart';
 import 'package:personal_sender/shared_ui/theme.dart';

@@ -20,6 +20,7 @@ import '../core/transfer/sender.dart';
 import '../shared_ui/format.dart';
 import '../shared_ui/link_indicator.dart';
 import '../shared_ui/platform_network_info.dart';
+import '../shared_ui/sending_progress.dart';
 import 'home_screen.dart';
 import 'multicast_lock.dart';
 import 'pair_screen.dart';
