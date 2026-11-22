@@ -5,16 +5,20 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/client/client.dart';
 import '../core/identity/identity.dart';
+import '../core/pairing/pairing.dart';
 import '../core/protocol/models.dart';
 import '../core/server/server.dart';
+import '../core/storage/paired_store.dart';
 import '../core/transfer/receiver.dart';
 
-/// Task 4 dev screen, same on phone and laptop: it listens for incoming
-/// files AND can send a picked file to a typed address.
+/// Dev screen, same on phone and laptop (replaced by the real screens in
+/// Task 7): it listens, can show a pairing code, can pair by typed address
+/// and code, and can send a picked file to the paired device.
 class DevTransferScreen extends StatefulWidget {
   const DevTransferScreen({
     super.key,
     required this.identity,
+    required this.pairedStore,
     required this.platform,
     required this.resolveInbox,
     this.pickType = FileType.any,
@@ -22,6 +26,7 @@ class DevTransferScreen extends StatefulWidget {
   });
 
   final DeviceIdentity identity;
+  final PairedDeviceStore pairedStore;
   final String platform;
   final Future<Directory> Function() resolveInbox;
   final FileType pickType;
@@ -33,10 +38,15 @@ class DevTransferScreen extends StatefulWidget {
 
 class _DevTransferScreenState extends State<DevTransferScreen> {
   final _address = TextEditingController();
+  final _code = TextEditingController();
+  final _pairing = PairingManager();
   CoreServer? _server;
   String _listening = 'Starting…';
   String _inbox = '';
-  String _sendStatus = 'Enter the other device address, then pick a file.';
+  String _pairedLine = 'Not paired';
+  String _hostCode = '';
+  String _pairStatus = '';
+  String _sendStatus = 'Pair first, then pick a file.';
   final List<String> _received = [];
   bool _busy = false;
 
@@ -44,6 +54,21 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   void initState() {
     super.initState();
     _start();
+    _refreshPaired();
+  }
+
+  Future<void> _refreshPaired() async {
+    final d = await widget.pairedStore.load();
+    if (!mounted) return;
+    setState(() {
+      _pairedLine = d == null
+          ? 'Not paired'
+          : 'Paired with ${d.name}'
+                '${d.lastAddress == null ? '' : ' (last ${d.lastAddress})'}';
+      if (d?.lastAddress != null && _address.text.isEmpty) {
+        _address.text = d!.lastAddress!;
+      }
+    });
   }
 
   Future<void> _start() async {
@@ -51,6 +76,12 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
       final dir = await widget.resolveInbox();
       final server = CoreServer(
         identity: widget.identity,
+        pairedStore: widget.pairedStore,
+        pairing: _pairing,
+        onPaired: (_) {
+          _refreshPaired();
+          if (mounted) setState(() => _hostCode = '');
+        },
         info: DeviceInfo(
           id: widget.identity.id,
           name: widget.identity.name,
@@ -88,16 +119,77 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   void dispose() {
     _server?.stop();
     _address.dispose();
+    _code.dispose();
     super.dispose();
   }
 
-  Future<void> _pickAndSend() async {
+  (String, int)? _parseAddress() {
     final parts = _address.text.trim().split(':');
-    final host = parts.first;
+    if (parts.first.isEmpty) return null;
     final port = parts.length > 1
         ? int.tryParse(parts[1]) ?? defaultPort
         : defaultPort;
-    if (host.isEmpty) {
+    return (parts.first, port);
+  }
+
+  void _showCode() {
+    setState(() => _hostCode = _pairing.startPairing());
+  }
+
+  Future<void> _pair() async {
+    final addr = _parseAddress();
+    if (addr == null || _code.text.trim().length != 6) {
+      setState(() => _pairStatus = 'Enter the address and the 6-digit code.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _pairStatus = 'Pairing…';
+    });
+    try {
+      // Dev only: read the fingerprint from the connection. Task 7 takes it
+      // from the QR code instead.
+      final pin = await CoreClient.probeFingerprint(addr.$1, addr.$2);
+      final response =
+          await CoreClient(
+            host: addr.$1,
+            port: addr.$2,
+            pinnedFingerprint: pin,
+          ).pair(
+            PairRequest(
+              code: _code.text.trim(),
+              deviceId: widget.identity.id,
+              deviceName: widget.identity.name,
+              fingerprint: widget.identity.fingerprint,
+            ),
+          );
+      await widget.pairedStore.save(
+        PairedDevice(
+          id: response.deviceId,
+          name: response.deviceName,
+          fingerprint: response.fingerprint,
+          secret: response.secret,
+          lastAddress: '${addr.$1}:${addr.$2}',
+        ),
+      );
+      _code.clear();
+      await _refreshPaired();
+      if (mounted) setState(() => _pairStatus = 'Paired.');
+    } catch (e) {
+      if (mounted) setState(() => _pairStatus = 'Pairing failed: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _pickAndSend() async {
+    final paired = await widget.pairedStore.load();
+    final addr = _parseAddress();
+    if (paired == null) {
+      setState(() => _sendStatus = 'Not paired yet.');
+      return;
+    }
+    if (addr == null) {
       setState(() => _sendStatus = 'Enter the other device address first.');
       return;
     }
@@ -113,9 +205,12 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
       final file = File(path);
       final size = await file.length();
       final name = path.split(RegExp(r'[\\/]')).last;
-      // Dev only: trust-on-first-use. Real pairing pins the QR fingerprint.
-      final pin = await CoreClient.probeFingerprint(host, port);
-      final client = CoreClient(host: host, port: port, pinnedFingerprint: pin);
+      final client = CoreClient(
+        host: addr.$1,
+        port: addr.$2,
+        pinnedFingerprint: paired.fingerprint,
+        secret: paired.secret,
+      );
       final id = await client.sendOffer(
         TransferOffer(
           senderId: widget.identity.id,
@@ -129,6 +224,7 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           ],
         ),
       );
+      await widget.pairedStore.updateLastAddress('${addr.$1}:${addr.$2}');
       await client.sendFile(
         id,
         0,
@@ -158,10 +254,34 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           Text('Receive', style: text.titleLarge),
           const SizedBox(height: 8),
           SelectableText(_listening),
-          SelectableText('My fingerprint: ${widget.identity.fingerprint}'),
           if (_inbox.isNotEmpty) SelectableText('Saving to: $_inbox'),
           for (final r in _received.take(5)) SelectableText('Received: $r'),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          Text('Pairing', style: text.titleLarge),
+          const SizedBox(height: 8),
+          Text(_pairedLine),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: _showCode,
+            child: const Text('Show pairing code (on the host)'),
+          ),
+          if (_hostCode.isNotEmpty)
+            SelectableText('Code: $_hostCode', style: text.headlineMedium),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _code,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: const InputDecoration(
+              labelText: 'Code from the other device',
+            ),
+          ),
+          OutlinedButton(
+            onPressed: _busy ? null : _pair,
+            child: const Text('Pair with address below'),
+          ),
+          if (_pairStatus.isNotEmpty) Text(_pairStatus),
+          const SizedBox(height: 24),
           Text('Send', style: text.titleLarge),
           const SizedBox(height: 8),
           TextField(

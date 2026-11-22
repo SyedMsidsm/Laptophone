@@ -5,6 +5,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_sender/core/client/client.dart';
 import 'package:personal_sender/core/identity/identity.dart';
+import 'package:personal_sender/core/pairing/pairing.dart';
+import 'package:personal_sender/core/storage/paired_store.dart';
 import 'package:personal_sender/core/protocol/models.dart';
 import 'package:personal_sender/core/server/server.dart';
 import 'package:personal_sender/core/transfer/receiver.dart';
@@ -38,6 +40,9 @@ void main() {
   late Directory tmp;
   late Directory inbox;
   late CoreServer server;
+  late PairedDeviceStore pairedStore;
+  const secret =
+      'ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12';
   late CoreClient client;
   late DeviceIdentity identity;
 
@@ -48,8 +53,19 @@ void main() {
     );
     tmp = await Directory.systemTemp.createTemp('ps_loopback_');
     inbox = Directory('${tmp.path}/inbox');
+    pairedStore = PairedDeviceStore(MemorySecretStore());
+    await pairedStore.save(
+      const PairedDevice(
+        id: 'client',
+        name: 'Phone',
+        fingerprint: 'f',
+        secret: secret,
+      ),
+    );
     server = CoreServer(
       identity: identity,
+      pairedStore: pairedStore,
+      pairing: PairingManager(),
       info: const DeviceInfo(
         id: 'srv',
         name: 'Test laptop',
@@ -63,6 +79,7 @@ void main() {
       host: '127.0.0.1',
       port: server.port,
       pinnedFingerprint: identity.fingerprint,
+      secret: secret,
     );
   });
 
@@ -136,7 +153,8 @@ void main() {
     );
     socket.write(
       'PUT /api/v1/transfers/$id/files/0 HTTP/1.1\r\n'
-      'Host: 127.0.0.1\r\nContent-Length: 1000\r\n\r\n',
+      'Host: 127.0.0.1\r\nAuthorization: Bearer $secret\r\n'
+      'Content-Length: 1000\r\n\r\n',
     );
     socket.add(List.filled(400, 1));
     await socket.flush();

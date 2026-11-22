@@ -111,7 +111,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/identity/identity.dart`, `lib/core/identity/certificate.dart`, `lib/core/server/server.dart`, `lib/core/client/client.dart`, `test/loopback/tls_test.dart`
 **Scope:** M
 
-### - [ ] Task 6: Pairing protocol and auth
+### - [x] Task 6: Pairing protocol and auth
 
 **Description:**
 - `POST /api/v1/pair` with a single-use 6-digit code; it exchanges identity, fingerprint and a 32-byte shared secret.
@@ -119,11 +119,12 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - `PairedDeviceStore` keeps the paired device, its fingerprint and the last good address.
 
 **Acceptance criteria:**
-- [ ] Loopback: pairing succeeds once; reusing the code fails.
-- [ ] No token or a wrong secret → `401` on transfers and text routes.
-- [ ] The paired device survives a restart (store reload test).
+- [x] Loopback: pairing succeeds once; reusing the code fails.
+- [x] No token or a wrong secret → `401` on transfers and text routes.
+- [x] The paired device survives a restart (store reload test).
 
 **Verification:** `flutter test test/loopback/pairing_test.dart test/core/storage`
+**Result:** 38 tests pass. Pairing succeeds once and a reused, wrong, expired or never-started code is refused (403); five wrong guesses cancel the code. Unpaired or wrong-secret requests get 401 on transfers, uploads and text (also checked with curl on the real laptop app); /info and /pair stay open. Paired device and last address survive restarts (store reload test, and on the S24 after force-stop). Real pairing on hotspot: phone to laptop photo 284994 (1).jpg SHA-256 matches. Added a `POST /api/v1/text` route (needed for the 401 criterion). Dev screen still reads the fingerprint from the connection; Task 7 uses the QR code. Dev screen layout is confusing (address field is below the Pair button).
 **Dependencies:** 5
 **Files:** `lib/core/pairing/pairing.dart`, `lib/core/storage/paired_store.dart`, `lib/core/server/server.dart`, `test/loopback/pairing_test.dart`
 **Scope:** M

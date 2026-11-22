@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_sender/core/client/client.dart';
 import 'package:personal_sender/core/identity/identity.dart';
+import 'package:personal_sender/core/pairing/pairing.dart';
+import 'package:personal_sender/core/storage/paired_store.dart';
 import 'package:personal_sender/core/protocol/models.dart';
 import 'package:personal_sender/core/server/server.dart';
 import 'package:personal_sender/core/transfer/receiver.dart';
@@ -11,6 +13,9 @@ void main() {
   late Directory tmp;
   late DeviceIdentity identity;
   late CoreServer server;
+  late PairedDeviceStore pairedStore;
+  const secret =
+      'ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12';
 
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('ps_tls_');
@@ -18,8 +23,19 @@ void main() {
       MemorySecretStore(),
       name: 'Test laptop',
     );
+    pairedStore = PairedDeviceStore(MemorySecretStore());
+    await pairedStore.save(
+      const PairedDevice(
+        id: 'client',
+        name: 'Phone',
+        fingerprint: 'f',
+        secret: secret,
+      ),
+    );
     server = CoreServer(
       identity: identity,
+      pairedStore: pairedStore,
+      pairing: PairingManager(),
       info: DeviceInfo(
         id: identity.id,
         name: identity.name,
@@ -40,6 +56,7 @@ void main() {
     host: '127.0.0.1',
     port: server.port,
     pinnedFingerprint: fingerprint,
+    secret: secret,
   );
 
   test('correct fingerprint connects', () async {

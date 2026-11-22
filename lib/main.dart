@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'desktop/known_folders.dart';
 import 'core/identity/identity.dart';
+import 'core/storage/paired_store.dart';
 import 'shared_ui/dev_transfer_screen.dart';
 import 'shared_ui/flutter_secret_store.dart';
 
@@ -22,6 +23,7 @@ Future<void> main() async {
     PersonalSenderApp(
       home: DevTransferScreen(
         identity: identity,
+        pairedStore: PairedDeviceStore(const FlutterSecretStore()),
         platform: android ? 'android' : 'windows',
         // Phone: app cache for now (real Downloads/gallery saving is Task 14).
         resolveInbox: android

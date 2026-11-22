@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../identity/certificate.dart';
+import '../pairing/pairing.dart';
 import '../protocol/models.dart';
 
 class ClientException implements Exception {
@@ -21,11 +22,15 @@ class CoreClient {
     required this.host,
     required this.port,
     required this.pinnedFingerprint,
+    this.secret,
   });
 
   final String host;
   final int port;
   final String pinnedFingerprint;
+
+  /// Shared secret from pairing; sent as `Authorization: Bearer <secret>`.
+  final String? secret;
 
   Uri _uri(String path) =>
       Uri(scheme: 'https', host: host, port: port, path: path);
@@ -60,6 +65,29 @@ class CoreClient {
   Future<DeviceInfo> getInfo() async {
     final json = await _request('GET', '/api/v1/info');
     return DeviceInfo.fromJson(json);
+  }
+
+  /// Pairs with the host using the one-time code. Returns the host's reply;
+  /// the caller saves it as a [PairedDevice].
+  Future<PairResponse> pair(PairRequest request) async {
+    final json = await _request(
+      'POST',
+      '/api/v1/pair',
+      body: utf8.encode(jsonEncode(request.toJson())),
+    );
+    final response = PairResponse.fromJson(json);
+    if (response.fingerprint != pinnedFingerprint) {
+      throw ClientException('Paired device presented a different certificate');
+    }
+    return response;
+  }
+
+  Future<void> sendText(TextMessage message) async {
+    await _request(
+      'POST',
+      '/api/v1/text',
+      body: utf8.encode(jsonEncode(message.toJson())),
+    );
   }
 
   /// Announces a batch and returns the transfer ID.
@@ -104,6 +132,9 @@ class CoreClient {
     final http = _newHttpClient();
     try {
       final req = await http.openUrl(method, _uri(path));
+      if (secret != null) {
+        req.headers.set(HttpHeaders.authorizationHeader, 'Bearer $secret');
+      }
       if (body != null) {
         req.headers.contentType = ContentType.json;
         req.contentLength = body.length;
