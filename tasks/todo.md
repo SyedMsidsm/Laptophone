@@ -156,18 +156,19 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 3 · Discovery (M3)
 
-### - [ ] Task 8: Discovery without UDP
+### - [x] Task 8: Discovery without UDP
 
 **Description:**
 - `DiscoveryService` emits `connected / looking / offline`. It tries, in order: last good address → network gateway → `/24` subnet scan of `/api/v1/info`, matching the paired fingerprint.
 - Re-checks every 5 s while looking and every 30 s while connected.
 
 **Acceptance criteria:**
-- [ ] Unit tests with a fake prober: correct order, stops at the first match, ignores devices with the wrong fingerprint.
-- [ ] Subnet scan finishes in < 4 s (parallel probes, 300 ms timeout).
-- [ ] Network type is reported as Wi-Fi / phone hotspot / laptop hotspot, never the Wi-Fi name.
+- [x] Unit tests with a fake prober: correct order, stops at the first match, ignores devices with the wrong fingerprint.
+- [x] Subnet scan finishes in < 4 s (parallel probes, 300 ms timeout).
+- [x] Network type is reported as Wi-Fi / phone hotspot / laptop hotspot, never the Wi-Fi name.
 
 **Verification:** `flutter test test/core/discovery`
+**Result:** 62 tests pass (order, early stop, wrong cert/ID ignored, offline/looking, network kinds, route-table parser, real prober over loopback). On the real phone-hotspot network: saved-address path 244 ms (phone) and 98 ms (laptop), both labelled "Phone hotspot"; /24 scan found the phone in 371 ms; a full scan with no match took 1.25 s (target < 4 s). Home Wi-Fi also verified by the user: after the saved hotspot address went stale, both apps found each other and labelled it "Wi-Fi" (laptop 649 ms, phone the same). The Windows hotspot is covered by unit tests only. Cosmetic: the "Listening on" list is not refreshed when the network changes. The phone must have the app in front to answer (Android). Finding: the phone reports its name as "localhost" (`Platform.localHostname` on Android); needs a real device name later. Added `network_info_plus` 8.2.2 (spec list, pinned) for the phone gateway.
 **Dependencies:** 6
 **Files:** `lib/core/discovery/discovery.dart`, `lib/core/discovery/gateway.dart`, `lib/core/discovery/subnet_scan.dart`, `test/core/discovery/discovery_test.dart`
 **Scope:** M

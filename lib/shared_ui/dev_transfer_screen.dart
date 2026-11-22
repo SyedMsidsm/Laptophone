@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../core/client/client.dart';
+import '../core/discovery/discovery.dart';
+import '../core/discovery/prober.dart';
 import '../core/identity/identity.dart';
 import '../core/pairing/pairing.dart';
 import '../core/protocol/models.dart';
@@ -13,6 +15,7 @@ import '../core/storage/paired_store.dart';
 import '../core/transfer/receiver.dart';
 import '../desktop/pair_window.dart';
 import '../phone/pair_screen.dart';
+import 'platform_network_info.dart';
 
 /// Dev screen, same on phone and laptop (replaced by the real screens in
 /// Task 7): it listens, can show a pairing code, can pair by typed address
@@ -47,6 +50,9 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
   String _listening = 'Starting…';
   String _inbox = '';
   String _pairedLine = 'Not paired';
+  String _netLine = 'Network: checkingâ€¦';
+  DiscoveryService? _discovery;
+  StreamSubscription<DiscoveryState>? _discSub;
   String _sendStatus = 'Pair first, then pick a file.';
   final List<String> _received = [];
   bool _busy = false;
@@ -56,10 +62,44 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
     super.initState();
     _start();
     _refreshPaired();
+    _startDiscovery();
   }
+
+  void _startDiscovery() {
+    final d = DiscoveryService(
+      store: widget.pairedStore,
+      network: PlatformNetworkInfo(),
+      prober: storeProber(widget.pairedStore),
+      ownPlatform: widget.platform,
+    );
+    _discovery = d;
+    _discSub = d.states.listen((s) {
+      if (!mounted) return;
+      setState(() {
+        _netLine = switch (s.status) {
+          DiscoveryStatus.offline => 'Network: offline',
+          DiscoveryStatus.looking => 'Network: looking for the other device…',
+          DiscoveryStatus.connected =>
+            'Network: ${_kindLabel(s.network)} · connected to '
+                '${s.peer!.name} (${s.address}) · '
+                '${d.lastRoundDuration.inMilliseconds} ms',
+        };
+        if (s.status == DiscoveryStatus.connected) _address.text = s.address!;
+      });
+    });
+    d.start();
+  }
+
+  String _kindLabel(NetworkKind k) => switch (k) {
+    NetworkKind.wifi => 'Wi-Fi',
+    NetworkKind.phoneHotspot => 'Phone hotspot',
+    NetworkKind.laptopHotspot => 'Laptop hotspot',
+    NetworkKind.unknown => 'Network',
+  };
 
   Future<void> _refreshPaired() async {
     final d = await widget.pairedStore.load();
+    _discovery?.checkNow();
     if (!mounted) return;
     setState(() {
       _pairedLine = d == null
@@ -118,6 +158,8 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
 
   @override
   void dispose() {
+    _discSub?.cancel();
+    _discovery?.dispose();
     _server?.stop();
     _address.dispose();
     _pairedEvents.close();
@@ -234,6 +276,7 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           Text('Pairing', style: text.titleLarge),
           const SizedBox(height: 8),
           Text(_pairedLine),
+          Text(_netLine),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: _openPairing,

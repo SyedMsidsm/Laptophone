@@ -23,6 +23,7 @@ class CoreClient {
     required this.port,
     required this.pinnedFingerprint,
     this.secret,
+    this.connectTimeout = const Duration(seconds: 4),
   });
 
   final String host;
@@ -32,12 +33,15 @@ class CoreClient {
   /// Shared secret from pairing; sent as `Authorization: Bearer <secret>`.
   final String? secret;
 
+  /// How long to wait for the TCP connection (short for discovery probes).
+  final Duration connectTimeout;
+
   Uri _uri(String path) =>
       Uri(scheme: 'https', host: host, port: port, path: path);
 
   HttpClient _newHttpClient() {
     final c = HttpClient(context: SecurityContext(withTrustedRoots: false))
-      ..connectionTimeout = const Duration(seconds: 4);
+      ..connectionTimeout = connectTimeout;
     c.badCertificateCallback = (cert, h, p) =>
         fingerprintOfDer(cert.der) == pinnedFingerprint;
     return c;
