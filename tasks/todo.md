@@ -69,15 +69,16 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 ### - [ ] Task 4: Bare-bones apps to send a photo by typed IP
 
 **Description:**
-- Laptop: start the server, save into `Desktop\PersonalSender\` (found via the Windows Desktop known folder) and show "Listening on <ip>:47820".
+- Laptop: start the server, save into `Desktop\PersonalSender Inbox\` (found via the Windows Desktop known folder) and show "Listening on <ip>:47820".
 - Phone: an address field, a "Pick photo" button (`file_picker`), and send with a progress line.
 - Debug-only cleartext setting on Android.
 
 **Acceptance criteria:**
-- [ ] A photo picked on the S24 appears in `Desktop\PersonalSender\` byte-identical, on home Wi-Fi.
-- [ ] Written down: whether Android 17 asked for a local-network permission, and what the Windows Firewall prompt looked like.
+- [x] A photo picked on the S24 appears in `Desktop\PersonalSender Inbox\` byte-identical, on home Wi-Fi.
+- [x] Written down: whether Android 17 asked for a local-network permission, and what the Windows Firewall prompt looked like.
 
 **Verification:** Manual, on both devices; compare SHA-256 with `Get-FileHash` on the laptop.
+**Result:** Phone to laptop on home Wi-Fi: 284994.jpg (261206 bytes) arrived with the same SHA-256 as the phone copy. Findings: (1) Android 17 needs `ACCESS_LOCAL_NETWORK`; without it connections fail ("Software caused connection abort" sending, timeouts receiving). It never prompted because the app did not request it. Now declared in the manifest and granted via `adb pm grant`; a runtime request is still needed (later task). (2) Windows Firewall: no prompt seen; the auto-created `personal_sender.exe` rules covered Public only, so the Private Wi-Fi blocked inbound until the user ticked Private. Rules are per exe path. (3) Scope widened at the user request: both apps now listen and send (`lib/shared_ui/dev_transfer_screen.dart`). Phone inbox is the app cache for now. (4) The laptop inbox `DesktopPersonalSender` is the same folder as this repo; needs a decision. Still to test: laptop to phone, and hotspot.
 **Dependencies:** 3
 **Files:** `lib/main.dart`, `lib/phone/dev_send_screen.dart`, `lib/desktop/dev_receive_screen.dart`, `android/app/src/main/AndroidManifest.xml`, `lib/desktop/known_folders.dart`
 **Scope:** M
@@ -192,7 +193,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 4 · Look and both directions (M4)
 
-### - [x] Task 10: Theme, tokens and fonts
+### - [ ] Task 10: Theme, tokens and fonts
 
 **Description:**
 - Turn DESIGN.md tokens into code: light and dark `ColorScheme` for each app, a `DeviceColors` `ThemeExtension`, and type styles including Archivo `wdth 125`.
@@ -208,7 +209,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/shared_ui/tokens.dart`, `lib/shared_ui/theme.dart`, `pubspec.yaml`, `assets/fonts/*`, `test/shared_ui/theme_test.dart`
 **Scope:** S
 
-### - [x] Task 11: Connection line widget
+### - [ ] Task 11: Connection line widget
 
 **Description:** `LinkIndicator(state, network)`: two device badges and a half-orange, half-blue line, with solid, dashed and broken states and a network chip. The dashes drift only when animations are allowed. `Semantics` label = the status sentence.
 
@@ -221,7 +222,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/shared_ui/link_indicator.dart`, `test/shared_ui/link_indicator_test.dart`
 **Scope:** S
 
-### - [x] Task 12: Phone Home screen
+### - [ ] Task 12: Phone Home screen
 
 **Description:**
 - Home as drawn: orange band, connection card fed by `DiscoveryService`, and Stay ready row (switch disabled until Task 20).
@@ -239,7 +240,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/phone/home_screen.dart`, `lib/shared_ui/activity_row.dart`, `lib/core/history/history_store.dart`, `test/core/history/history_store_test.dart`
 **Scope:** M
 
-### - [x] Task 13: Laptop main window
+### - [ ] Task 13: Laptop main window
 
 **Description:**
 - Main window as drawn: blue band, connection pill, and drop zone (`desktop_drop`) with the drag-over state and count badge.
@@ -256,7 +257,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/desktop/main_window.dart`, `lib/desktop/drop_zone.dart`, `lib/desktop/shortcuts.dart`, `test/desktop/main_window_test.dart`
 **Scope:** M
 
-### - [x] Task 14: Saving on the phone and arrival notifications
+### - [ ] Task 14: Saving on the phone and arrival notifications
 
 **Description:**
 - Phone: photos and videos go to the Gallery album "PersonalSender" (`gal`). Other files go to `Downloads/PersonalSender/` via a Kotlin MediaStore channel.
@@ -281,7 +282,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 5 · Platform integration (M5)
 
-### - [x] Task 15: Phone share menu and share sheet
+### - [ ] Task 15: Phone share menu and share sheet
 
 **Description:**
 - Intent filters for `SEND` / `SEND_MULTIPLE` (any type, plus text) via `receive_sharing_intent`.
@@ -298,7 +299,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `android/app/src/main/AndroidManifest.xml`, `lib/phone/share_intake.dart`, `lib/phone/share_sheet.dart`
 **Scope:** M
 
-### - [x] Task 16: Tray, close to tray, single instance, start at login
+### - [ ] Task 16: Tray, close to tray, single instance, start at login
 
 **Description:**
 - `tray_manager` menu with the exact items in DESIGN.md.
@@ -315,7 +316,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/desktop/tray.dart`, `lib/desktop/window_lifecycle.dart`, `lib/main.dart`, `windows/runner/main.cpp`
 **Scope:** M
 
-### - [x] Task 17: Settings on both apps
+### - [ ] Task 17: Settings on both apps
 
 **Description:**
 - Phone settings: paired laptop, Unpair (with confirm), Stay ready (wired in Task 20), save locations, copy received text, name, connection details, version.
@@ -338,7 +339,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 6 · Text (M6)
 
-### - [x] Task 18: Text and links both ways
+### - [ ] Task 18: Text and links both ways
 
 **Description:**
 - `POST /api/v1/text`.
@@ -360,7 +361,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 7 · Reliability and release (M7)
 
-### - [x] Task 19: Laptop outbox
+### - [ ] Task 19: Laptop outbox
 
 **Description:**
 - Sends to an unreachable phone go into a persisted outbox. Rows show *Waiting for phone* with Cancel.
@@ -375,7 +376,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/transfer/outbox.dart`, `test/core/transfer/outbox_test.dart`, `lib/desktop/main_window.dart`
 **Scope:** S
 
-### - [x] Task 20: Phone Stay ready
+### - [ ] Task 20: Phone Stay ready
 
 **Description:**
 - `flutter_foreground_task` with the `specialUse` type keeps the server running while Stay ready is on.
@@ -392,7 +393,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/phone/stay_ready_service.dart`, `android/app/src/main/AndroidManifest.xml`, `lib/phone/home_screen.dart`
 **Scope:** S
 
-### - [x] Task 21: Interrupted transfers and Retry
+### - [ ] Task 21: Interrupted transfers and Retry
 
 **Description:**
 - Connection drops mark the item *Not sent · reason* on the sender, with **Retry** (whole file).
@@ -408,7 +409,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/core/transfer/receiver.dart`, `lib/core/client/client.dart`, `lib/shared_ui/activity_row.dart`, `test/loopback/interrupt_test.dart`
 **Scope:** M
 
-### - [x] Task 22: Phone All activity screen
+### - [ ] Task 22: Phone All activity screen
 
 **Description:** "See all" opens the full history, with filter chips (All / Sent / Received / Not sent), day groups and Retry on failed items.
 
@@ -422,7 +423,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 **Files:** `lib/phone/activity_screen.dart`, `lib/core/history/grouping.dart`, `test/phone/activity_groups_test.dart`
 **Scope:** S
 
-### - [x] Task 23: App icon and release builds
+### - [ ] Task 23: App icon and release builds
 
 **Description:**
 - Android adaptive icon (background + foreground + monochrome) and Windows `.ico` (16–256), from DESIGN.md.
