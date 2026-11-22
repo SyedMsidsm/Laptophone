@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../core/client/client.dart';
+import '../core/identity/identity.dart';
 import '../core/protocol/models.dart';
 import '../core/server/server.dart';
 import '../core/transfer/receiver.dart';
@@ -13,14 +14,14 @@ import '../core/transfer/receiver.dart';
 class DevTransferScreen extends StatefulWidget {
   const DevTransferScreen({
     super.key,
-    required this.deviceName,
+    required this.identity,
     required this.platform,
     required this.resolveInbox,
     this.pickType = FileType.any,
     this.pickLabel = 'Pick file',
   });
 
-  final String deviceName;
+  final DeviceIdentity identity;
   final String platform;
   final Future<Directory> Function() resolveInbox;
   final FileType pickType;
@@ -49,9 +50,10 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
     try {
       final dir = await widget.resolveInbox();
       final server = CoreServer(
+        identity: widget.identity,
         info: DeviceInfo(
-          id: 'dev-${widget.platform}',
-          name: widget.deviceName,
+          id: widget.identity.id,
+          name: widget.identity.name,
           platform: widget.platform,
           appVersion: '0.1.0',
         ),
@@ -111,10 +113,12 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
       final file = File(path);
       final size = await file.length();
       final name = path.split(RegExp(r'[\\/]')).last;
-      final client = CoreClient(host: host, port: port);
+      // Dev only: trust-on-first-use. Real pairing pins the QR fingerprint.
+      final pin = await CoreClient.probeFingerprint(host, port);
+      final client = CoreClient(host: host, port: port, pinnedFingerprint: pin);
       final id = await client.sendOffer(
         TransferOffer(
-          senderId: 'dev-${widget.platform}',
+          senderId: widget.identity.id,
           files: [
             FileMeta(
               name: name,
@@ -154,6 +158,7 @@ class _DevTransferScreenState extends State<DevTransferScreen> {
           Text('Receive', style: text.titleLarge),
           const SizedBox(height: 8),
           SelectableText(_listening),
+          SelectableText('My fingerprint: ${widget.identity.fingerprint}'),
           if (_inbox.isNotEmpty) SelectableText('Saving to: $_inbox'),
           for (final r in _received.take(5)) SelectableText('Received: $r'),
           const SizedBox(height: 32),

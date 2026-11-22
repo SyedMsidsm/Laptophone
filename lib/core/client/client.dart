@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../identity/certificate.dart';
 import '../protocol/models.dart';
 
 class ClientException implements Exception {
@@ -12,15 +13,49 @@ class ClientException implements Exception {
   String toString() => 'ClientException($statusCode): $message';
 }
 
-/// Talks to a paired device. Files are streamed, never read whole.
+/// Talks to a paired device over HTTPS. The server's certificate must match
+/// [pinnedFingerprint] (SHA-256 of its DER bytes, lowercase hex). Files are
+/// streamed, never read whole.
 class CoreClient {
-  CoreClient({required this.host, required this.port});
+  CoreClient({
+    required this.host,
+    required this.port,
+    required this.pinnedFingerprint,
+  });
 
   final String host;
   final int port;
+  final String pinnedFingerprint;
 
   Uri _uri(String path) =>
-      Uri(scheme: 'http', host: host, port: port, path: path);
+      Uri(scheme: 'https', host: host, port: port, path: path);
+
+  HttpClient _newHttpClient() {
+    final c = HttpClient(context: SecurityContext(withTrustedRoots: false));
+    c.badCertificateCallback = (cert, h, p) =>
+        fingerprintOfDer(cert.der) == pinnedFingerprint;
+    return c;
+  }
+
+  /// Dev-only trust-on-first-use helper: returns the fingerprint the server
+  /// at [host]:[port] presents. Never use this for a paired device.
+  static Future<String> probeFingerprint(String host, int port) async {
+    String? seen;
+    final c = HttpClient(context: SecurityContext(withTrustedRoots: false));
+    c.badCertificateCallback = (cert, h, p) {
+      seen = fingerprintOfDer(cert.der);
+      return false;
+    };
+    try {
+      await c.getUrl(Uri(scheme: 'https', host: host, port: port, path: '/'));
+    } on Object {
+      // Expected: the handshake is rejected after we read the certificate.
+    } finally {
+      c.close(force: true);
+    }
+    if (seen == null) throw ClientException('No TLS server at $host:$port');
+    return seen!;
+  }
 
   Future<DeviceInfo> getInfo() async {
     final json = await _request('GET', '/api/v1/info');
@@ -66,7 +101,7 @@ class CoreClient {
     Stream<List<int>>? stream,
     int? length,
   }) async {
-    final http = HttpClient();
+    final http = _newHttpClient();
     try {
       final req = await http.openUrl(method, _uri(path));
       if (body != null) {
@@ -86,6 +121,8 @@ class CoreClient {
         throw ClientException(msg, statusCode: res.statusCode);
       }
       return decoded as Map<String, Object?>;
+    } on HandshakeException {
+      throw ClientException('Certificate does not match the paired device');
     } on SocketException catch (e) {
       throw ClientException('Connection failed: ${e.message}');
     } finally {

@@ -5,15 +5,21 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
+import '../identity/identity.dart';
 import '../protocol/models.dart';
 import '../transfer/receiver.dart';
 
 const defaultPort = 47820;
 
-/// HTTP server for protocol v1 (TLS and auth are added in later tasks).
+/// HTTPS server for protocol v1 (auth is added in Task 6).
 class CoreServer {
-  CoreServer({required this.info, required this.receiver});
+  CoreServer({
+    required this.identity,
+    required this.info,
+    required this.receiver,
+  });
 
+  final DeviceIdentity identity;
   final DeviceInfo info;
   final Receiver receiver;
   HttpServer? _server;
@@ -29,6 +35,7 @@ class CoreServer {
       router.call,
       address ?? InternetAddress.anyIPv4,
       port,
+      securityContext: identity.certificate.serverContext(),
     );
   }
 

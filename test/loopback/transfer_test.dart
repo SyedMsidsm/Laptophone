@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_sender/core/client/client.dart';
+import 'package:personal_sender/core/identity/identity.dart';
 import 'package:personal_sender/core/protocol/models.dart';
 import 'package:personal_sender/core/server/server.dart';
 import 'package:personal_sender/core/transfer/receiver.dart';
@@ -38,11 +39,17 @@ void main() {
   late Directory inbox;
   late CoreServer server;
   late CoreClient client;
+  late DeviceIdentity identity;
 
   setUp(() async {
+    identity = await DeviceIdentity.loadOrCreate(
+      MemorySecretStore(),
+      name: 'Test laptop',
+    );
     tmp = await Directory.systemTemp.createTemp('ps_loopback_');
     inbox = Directory('${tmp.path}/inbox');
     server = CoreServer(
+      identity: identity,
       info: const DeviceInfo(
         id: 'srv',
         name: 'Test laptop',
@@ -52,7 +59,11 @@ void main() {
       receiver: Receiver(inbox),
     );
     await server.start(port: 0, address: InternetAddress.loopbackIPv4);
-    client = CoreClient(host: '127.0.0.1', port: server.port);
+    client = CoreClient(
+      host: '127.0.0.1',
+      port: server.port,
+      pinnedFingerprint: identity.fingerprint,
+    );
   });
 
   tearDown(() async {
@@ -118,7 +129,11 @@ void main() {
     );
 
     // Promise 1000 bytes, send 400, then close the socket.
-    final socket = await Socket.connect('127.0.0.1', server.port);
+    final socket = await SecureSocket.connect(
+      '127.0.0.1',
+      server.port,
+      onBadCertificate: (_) => true,
+    );
     socket.write(
       'PUT /api/v1/transfers/$id/files/0 HTTP/1.1\r\n'
       'Host: 127.0.0.1\r\nContent-Length: 1000\r\n\r\n',

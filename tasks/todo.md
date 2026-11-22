@@ -93,7 +93,7 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 
 ## Phase 2 · Pairing and security (M2)
 
-### - [ ] Task 5: Device identity and pinned TLS (spike first)
+### - [x] Task 5: Device identity and pinned TLS (spike first)
 
 **Description:**
 - Spike: generate an EC P-256 self-signed certificate on the phone and time it. Do one pinned HTTPS request in each direction.
@@ -101,11 +101,12 @@ Phone device ID for commands: `R5CY34L920Y`. Every task also meets the **Definit
 - Switch server and client to HTTPS with SHA-256 fingerprint pinning, and remove cleartext.
 
 **Acceptance criteria:**
-- [ ] Certificate generation takes < 3 s on the S24 and happens only once (it survives restarts).
-- [ ] Loopback: the correct fingerprint connects, a wrong fingerprint is rejected.
-- [ ] Android cleartext setting removed.
+- [x] Certificate generation takes < 3 s on the S24 and happens only once (it survives restarts).
+- [x] Loopback: the correct fingerprint connects, a wrong fingerprint is rejected.
+- [x] Android cleartext setting removed.
 
 **Verification:** `flutter test test/loopback/tls_test.dart` · manual timing on the phone
+**Result:** 24 tests pass. Cert + identity creation 459 ms on the S24 (first run), same fingerprint after restarts. HTTPS-only with pinning on both devices; phone to laptop 284954.jpg (382843 bytes) SHA-256 matches; laptop to phone file arrived (44289 bytes). Cleartext removed. Dev screens use trust-on-first-use until Task 6 pairing. `flutter_secure_storage` on Windows needs the VS "C++ ATL" component (installed by the user). Packages added, pinned: basic_utils 5.8.2, uuid 4.6.0, flutter_secure_storage 11.2.0.
 **Dependencies:** 4
 **Files:** `lib/core/identity/identity.dart`, `lib/core/identity/certificate.dart`, `lib/core/server/server.dart`, `lib/core/client/client.dart`, `test/loopback/tls_test.dart`
 **Scope:** M
